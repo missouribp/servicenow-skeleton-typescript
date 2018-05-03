@@ -129,7 +129,8 @@ export class Gulpfile {
         const tsProject = gulpts.createProject(this.config.tsconfig, {
             typescript: require("typescript")
         });
-
+        console.log("Building with TypeScript compiler version " + tsProject.typescript.version);
+        
         return gulp
                 .src(this.config.src + "**/*.ts")
                 .pipe(tsProject(gulpts.reporter.defaultReporter()))
