@@ -3,7 +3,7 @@
 ## Initial Project Setup
 ### Node Project Setup
 ```bash
-npm i servicenow-dev-skeleton --save-dev
+npm i servicenow-dev-skeleton require-dir --save-dev
 node_modules\.bin\skeleton init
 typings install
 ```
