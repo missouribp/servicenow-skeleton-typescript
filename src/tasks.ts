@@ -63,7 +63,7 @@ export class Gulpfile {
             BreakBeforeBraces: "Attach",
             ColumnLimit: 500,
             CommentPragmas: "^/<reference|^/<dts>",
-            IndentWidth: 2,
+            IndentWidth: 4,
             JavaScriptQuotes: "Double",
             Language: "JavaScript",
             MaxEmptyLinesToKeep: 1
