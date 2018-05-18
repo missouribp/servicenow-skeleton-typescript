@@ -122,7 +122,8 @@ export class Gulpfile {
         const tsProject = gulpts.createProject(this.config.tsconfig, {
             typescript: require("typescript")
         });
-
+        console.log("Building with TypeScript compiler version " + tsProject.typescript.version);
+        
         return gulp
                 .src(this.config.src + "**/*.ts")
                 .pipe(tsProject(gulpts.reporter.defaultReporter()))
@@ -514,13 +515,13 @@ export class Gulpfile {
         const relativePath = path.relative(path.dirname(pathToIndex), path.dirname(referencePath));
 
         // Check if the path already exists
-        const regexPath = "path=['\"]" + path.join(relativePath, path.basename(referencePath)).replace(/\\/g, "\\\\") + "['\"]";
+        const regexPath = "path=['\"]" + path.join(relativePath, path.basename(referencePath)).replace(/\\/g, "/") + "['\"]";
         const appdtsRegex = new RegExp(regexPath, "g");
 
         let content = fs.readFileSync(pathToIndex, "utf8");
 
         if (!appdtsRegex.test(content)) {
-            content += "\r\n/// <reference path=\"" + path.join(relativePath, path.basename(referencePath)) + "\" />";
+            content += "\r\n/// <reference path=\"" + path.join(relativePath, path.basename(referencePath)).replace(/\\/g, "/") + "\" />";
             write = true;
         }
 
