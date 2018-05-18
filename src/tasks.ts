@@ -7,6 +7,7 @@ import {Gulpclass, SequenceTask, Task} from "gulpclass";
 import * as path from "path";
 import * as request from "request";
 import Project, { SyntaxKind } from "ts-simple-ast";
+import { JSDOM } from "jsdom";
 
 if (fs.existsSync(".env")) {
   dotenv.config();
@@ -122,7 +123,8 @@ export class Gulpfile {
         const tsProject = gulpts.createProject(this.config.tsconfig, {
             typescript: require("typescript")
         });
-        console.log("Building with TypeScript compiler version " + tsProject.typescript.version);
+        if(tsProject.typescript)
+            console.log("Building with TypeScript compiler version " + tsProject.typescript.version);
         
         return gulp
                 .src(this.config.src + "**/*.ts")
@@ -187,7 +189,49 @@ export class Gulpfile {
                         }
                     }
 
-                    if (ext === ".ts" && (filePath.indexOf(".d.ts") === -1))
+                    if(ext === '.html'){
+                        const dom = new JSDOM(fs.readFileSync(filePath, 'utf8'));
+                        //look for special ts tags and sub in the typescript output
+                        //<ts tag="gs:evalute" jelly="true">filename.ts</ts>
+                        const tselements = dom.window.document.querySelectorAll("ts");
+                        if(tselements.length > 0){
+                            for(let i=0; i<tselements.length; i++) {
+                                const tselement = tselements[i];
+                                const tagName = tselement.getAttribute('tag');
+                                if(!tagName)
+                                    throw '<ts> elements require a tag attribute with the element name: ' + filePath;
+
+                                const filename = path.join(path.dirname(filePath), tselement.innerHTML);
+                                if(!fs.existsSync(filename))
+                                    throw `Failed to find ts file in ts tag referenece: ${filename}`;
+
+                                const distPath = filePath.replace(path.normalize(this.config.src), path.normalize(this.config.out));
+                                const jsPath = distPath.substring(0, distPath.length - path.extname(filePath).length) + ".js";
+
+                                const element = dom.window.document.createElement(tagName);
+                                for(let j=0; j<tselement.attributes.length; j++){
+                                    const att = tselement.attributes[i];
+                                    if(att.name != 'tag'){
+                                        element.setAttribute(att.name, att.value);
+                                    }
+                                }
+
+                                let code = `//::tsinsert:${btoa(tselement.outerHTML)}:${btoa(fs.readFileSync(distPath, 'utf8'))}\r\n\r\n`;
+                                code += fs.readFileSync(jsPath, 'utf8');                            
+                                element.innerText = code;
+                                const parent = tselement.parentNode as Node;
+                                parent.insertBefore(element, tselement);
+                                tselement.remove();
+                            }
+
+                            const output = dom.serialize();                            
+                            b.fields[key] = output;
+                        }
+                        else{
+                            b.fields[key] = fs.readFileSync(filePath, "utf8");
+                        }
+                    }
+                    else if (ext === ".ts" && (filePath.indexOf(".d.ts") === -1))
                     {
                         let distPath = filePath.replace(path.normalize(this.config.src), path.normalize(this.config.out));
                         distPath = distPath.substring(0, distPath.length - ext.length) + ".js";
