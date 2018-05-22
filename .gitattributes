@@ -1,0 +1,7 @@
+# Set default line endings behavior
+* text=auto
+
+# declare text files
+*.json text
+*.md text
+*.js text
