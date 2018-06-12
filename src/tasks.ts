@@ -152,6 +152,9 @@ export class Gulpfile {
             table: string,
             fields: {
                 [key: string]: string
+            },
+            ts_sources: {
+                [key: string]: string
             }
         };
 
@@ -170,6 +173,7 @@ export class Gulpfile {
                     etag: item.etag,
                     fields: { },
                     id: id,
+                    ts_sources: { },
                     table: item.type
                 };
 
@@ -195,7 +199,7 @@ export class Gulpfile {
                             throw "Typescript output file was not found: " + distPath;
                         }
                         b.fields[key] = fs.readFileSync(distPath, "utf8");
-                        b.fields[this.config.types[item.type][key].ts_field] = fs.readFileSync(filePath, "utf8");
+                        b.ts_sources[key] = fs.readFileSync(filePath, "utf8");
                     }
                     else{
                         b.fields[key] = fs.readFileSync(filePath, "utf8");
@@ -323,8 +327,8 @@ export class Gulpfile {
             let content = appDataItem.fields[fieldName];
             let ext = prop.type;
 
-            if (prop.ts_field && appDataItem.fields[prop.ts_field]){
-                content = appDataItem.fields[prop.ts_field];
+            if (appDataItem.ts_sources[fieldName]){
+                content = appDataItem.ts_sources[fieldName];
                 ext = "ts";
             }
 
@@ -561,6 +565,9 @@ type GetFile = {
     etag: string;
     name: string;
     fields: {
+        [fieldName: string]: string;
+    };
+    ts_sources: {
         [fieldName: string]: string;
     }
 };
